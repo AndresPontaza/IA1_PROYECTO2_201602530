@@ -1,114 +1,75 @@
-// Cargar el archivo CSV y mostrar una vista previa
 function loadCSV() {
     const fileInput = document.getElementById('fileInput');
-
     const file = fileInput.files[0];
+
     if (!file) {
-        alert('Por favor, selecciona un archivo CSV primero.');
+        alert('Por favor, selecciona un archivo CSV.');
         return;
     }
 
     const reader = new FileReader();
-    reader.onload = function(event) {
+
+    reader.onload = function (event) {
         const text = event.target.result;
-        const data = parseCSV(text);
-        displayData(data);
+
+        // Usar PapaParse para convertir el CSV en un array de objetos
+        Papa.parse(text, {
+            header: true,
+            complete: function (results) {
+                displayDataPreview(results.data);
+
+                // Verifica que Danfo.js se haya cargado correctamente
+                const df = new dfd.DataFrame(results.data);
+                df.head().print();
+            },
+            error: function (error) {
+                console.error('Error al parsear el CSV:', error);
+            }
+        });
     };
+
     reader.readAsText(file);
 }
 
-// Parsear el contenido del archivo CSV
-function parseCSV(text) {
-    const rows = text.split('\n').map(row => row.split(','));
-    return rows;
-}
-
-// Muestra una vista previa de los datos en una tabla
-function displayData(data) {
+function displayDataPreview(data) {
     const dataPreview = document.getElementById('dataPreview');
-    // Limpiar contenido previo
+
+    // Limpiar contenido anterior
     dataPreview.innerHTML = '';
 
+    if (data.length === 0) {
+        dataPreview.innerHTML = '<p>No se encontraron datos.</p>';
+        return;
+    }
+
+    // Crear tabla
     const table = document.createElement('table');
     const headerRow = document.createElement('tr');
 
-    // Crear encabezados
-    data[0].forEach(header => {
+    // Crear cabeceras de la tabla
+    Object.keys(data[0]).forEach(key => {
         const th = document.createElement('th');
-        th.textContent = header;
+        th.textContent = key;
         headerRow.appendChild(th);
     });
     table.appendChild(headerRow);
 
-    // Crear filas de datos
-    for (let i = 1; i < data.length; i++) {
-        const row = document.createElement('tr');
-
-        // Filtrar celdas vacías al final de cada fila
-        const filteredRow = data[i].filter(cell => cell !== '');
-
-        filteredRow.forEach(cell => {
-            const td = document.createElement('td');
-            td.textContent = cell;
-            row.appendChild(td);
-        });
-
-        table.appendChild(row);
-    }
-
-    dataPreview.appendChild(table);
-}
-
-// Entrenar el modelo seleccionado con TytusJS
-function trainModel() {
-    const modelType = document.getElementById('modelSelect').value;
-    const trainTestSplit = document.getElementById('trainTestSplit').value;
-
-    // Configurar el modelo de acuerdo con el tipo seleccionado
-    let model;
-    switch (modelType) {
-        case 'linearRegression':
-            model = new TytusJS.LinearRegression();
-            break;
-        case 'kmeans':
-            model = new TytusJS.KMeans();
-            break;
-        case 'knn':
-            model = new TytusJS.KNN();
-            break;
-        // Agregar más modelos aquí
-        default:
-            console.error('Modelo no soportado');
-            return;
-    }
-}
-
-// Realizar predicción con el modelo entrenado
-function predict() {
-    const modelType = document.getElementById('modelSelect').value;
-
-    // Dependiendo del modelo, realiza predicciones
-    if (modelType === 'linearRegression') {
-        const predictions = model.predict(/* datos de prueba */);
-        console.log(predictions);
-    }
-}
-
-// Mostrar los resultados en una gráfica usando Chart.js
-function showGraph() {
-    const ctx = document.getElementById('resultsChart').getContext('2d');
-    new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: [/* etiquetas de datos de prueba */],
-            datasets: [{
-                label: 'Resultados',
-                data: [/* datos predichos */],
-                borderColor: 'rgba(75, 192, 192, 1)',
-                borderWidth: 1
-            }]
-        },
+    // Agregar filas de datos
+    data.forEach(row => {
+        // Asegurarse de que la fila tenga al menos un valor significativo
+        if (Object.values(row).some(value => value !== '' && value !== null && value !== undefined)) {
+            const tr = document.createElement('tr');
+            Object.values(row).forEach(value => {
+                const td = document.createElement('td');
+                td.textContent = value !== null && value !== undefined ? value : '';
+                tr.appendChild(td);
+            });
+            table.appendChild(tr);
+        }
     });
+
+    // Agregar la tabla al contenedor de previsualización
+    dataPreview.appendChild(table);
 }
 
 // Actualizar el nombre del modelo seleccionado
@@ -123,7 +84,7 @@ function updateModelName() {
 function updateModelName() {
     const modelSelect = document.getElementById('modelSelect').value;
     const modelName = document.getElementById('modelName');
-    
+
     // Oculta todas las secciones al cambiar de modelo
     document.querySelectorAll('.model-section').forEach(section => {
         section.style.display = 'none';
