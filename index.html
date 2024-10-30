@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>201602530</title>
+    <link rel="icon" type="image/x-icon" href="images/favicon.ico">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://tytusdb.github.io/tytusjs/dist/tytus.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Bienvenido al Proyecto 2 📚​</h1>
+
+        <!-- Sección de carga de CSV -->
+        <section class="section">
+            <h2 class="section-title">1. Cargar Datos ​📥​</h2>
+            <label for="modelSelect">Carga el archivo csv que deseas utilizar:</label>
+            <input type="file" id="fileInput" accept=".csv" class="file-input" />
+            <button onclick="loadCSV()" class="action-btn">Cargar CSV</button>
+            <br>
+            <h3>Previsualización de datos</h3>
+            <div id="dataPreview" class="data-preview"></div>
+        </section>
+
+        <!-- Sección de configuración de modelo -->
+        <section class="section">
+            <h2>2. Seleccionar Algoritmo o Modelo 📑​</h2>
+            <label for="modelSelect">Selecciona un algoritmo o modelo de Machine Learning:</label>
+            <select id="modelSelect" onchange="updateModelName()">
+                <option value="none">Selecciona un modelo</option>
+                <option value="linearRegression">Linear Regression</option>
+                <option value="polynomialRegression">Polynomial Regression</option>
+                <option value="decisionTree">Decision Tree</option>
+                <option value="naiveBayes">Naive Bayes</option>
+                <option value="neuralNetwork">Neural Network</option>
+                <option value="kmeans">K-means</option>
+                <option value="knn">K-Nearest Neighbor</option>
+            </select>
+        </section>
+
+        <!-- Secciones específicas de cada modelo -->
+
+        <!-- Linear Regression -->
+        <div id="linearRegressionSection" class="model-section" style="display: none;">
+            <section class="section">
+                <h2>3. Configurar Linear Regression ⚙️</h2>
+                <label for="modelSelect">Agrega los parámetros solicitados e interactúa con las siguientes acciones:</label>
+                <br>
+                <label for="lr-param1">Parámetro 1:</label>
+                <input type="number" id="lr-param1">
+                <button onclick="trainLinearRegression()">Entrenar Linear Regression</button>
+            </section>
+        </div>
+
+        <!-- Polynomial Regression -->
+        <div id="polynomialRegressionSection" class="model-section" style="display: none;">
+            <section class="section">
+                <h2>3. Configurar Polynomial Regression ⚙️</h2>
+                <label for="modelSelect">Agrega los parámetros solicitados e interactúa con las siguientes acciones:</label>
+                <br>
+                <label for="pr-degree">Grado del polinomio:</label>
+                <input type="number" id="pr-degree">
+                <button onclick="trainPolynomialRegression()">Entrenar Polynomial Regression</button>
+            </section>
+        </div>
+
+        <!-- Decision Tree -->
+        <div id="decisionTreeSection" class="model-section" style="display: none;">
+            <section class="section">
+                <h2>3. Configurar Decision Tree ⚙️</h2>
+                <label for="modelSelect">Agrega los parámetros solicitados e interactúa con las siguientes acciones:</label>
+                <br>
+                <label for="dt-depth">Profundidad máxima:</label>
+                <input type="number" id="dt-depth">
+                <button onclick="trainDecisionTree()">Entrenar Decision Tree</button>
+            </section>
+        </div>
+        </section>
+
+        <!-- Naive Bayes -->
+        <div id="naiveBayesSection" class="model-section" style="display: none;">
+            <section class="section">
+                <h2>3. Configurar Naive Bayes ⚙️</h2>
+                <label for="modelSelect">Agrega los parámetros solicitados e interactúa con las siguientes acciones:</label>
+                <br>
+                <button onclick="trainNaiveBayes()">Entrenar Naive Bayes</button>
+            </section>
+        </div>
+
+        <!-- Neural Network -->
+        <div id="neuralNetworkSection" class="model-section" style="display: none;">
+            <section class="section">
+                <h2>3. Configurar Neural Network ⚙️</h2>
+                <label for="modelSelect">Agrega los parámetros solicitados e interactúa con las siguientes acciones:</label>
+                <br>
+                <label for="nn-hiddenLayers">Capas ocultas:</label>
+                <input type="number" id="nn-hiddenLayers">
+                <button onclick="trainNeuralNetwork()">Entrenar Neural Network</button>
+            </section>
+        </div>
+
+        <!-- K-means -->
+        <div id="kmeansSection" class="model-section" style="display: none;">
+            <section class="section">
+                <h2>3. Configurar K-means ⚙️</h2>
+                <label for="modelSelect">Agrega los parámetros solicitados e interactúa con las siguientes acciones:</label>
+                <br>
+                <label for="km-k">Número de clusters:</label>
+                <input type="number" id="km-k">
+                <button onclick="trainKmeans()">Entrenar K-means</button>
+            </section>
+        </div>
+
+        <!-- K-Nearest Neighbor -->
+        <div id="knnSection" class="model-section" style="display: none;">
+            <section class="section">
+                <h2>3. Configurar K-Nearest Neighbor ⚙️</h2>
+                <label for="modelSelect">Agrega los parámetros solicitados e interactúa con las siguientes acciones:</label>
+                <br>
+                <label for="knn-k">Número de vecinos:</label>
+                <input type="number" id="knn-k">
+                <button onclick="trainKnn()">Entrenar K-Nearest Neighbor</button>
+            </section>
+        </div>
+        
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
