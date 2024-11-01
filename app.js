@@ -210,12 +210,12 @@ function trainLinearRegression() {
 
     // Combina X e Y en un formato de lista de listas para MinimosCuadrados
     const datos = xValues.map((x, i) => {
-            return [Number(x), Number(yValues[i])];
+        return [Number(x), Number(yValues[i])];
     });
-    
+
     // Ejecuta la regresión lineal usando MinimosCuadrados de G8_RegresionLineal.js
     MinimosCuadrados(datos);
-    
+
     // Obtiene el valor de X ingresado por el usuario
     const xValue = document.getElementById('xValueInput').value;
     if (!xValue) {
@@ -225,12 +225,12 @@ function trainLinearRegression() {
 
     // Realiza la predicción con el valor de X ingresado
     let resp = Predecir(Number(xValue));
-    
+
     // Muestra la ecuación de la recta en pantalla
     let Resp = document.getElementById("Resp");
     let texto = `Y = ${resp[1]}X `;
     texto += resp[2] >= 0 ? `+ ${resp[2]}` : `- ${Math.abs(resp[2])}`;
-    texto += `<br/>El resultado (Y) es: ${resp[0]}<br/>`;
+    texto += `<br/>El resultado de la Prediccion en Y es: ${resp[0]}<br/>`;
     Resp.innerHTML = texto;
 
     // Prepara datos para la gráfica, incluyendo cabeceras
@@ -238,20 +238,20 @@ function trainLinearRegression() {
     graficar(datos, 'Grafia Linear Regression');
 
     function graficar(datos, componente) {
-        google.charts.load('current', {'packages':['corechart']});
+        google.charts.load('current', { 'packages': ['corechart'] });
         google.charts.setOnLoadCallback(drawChart);
-    
+
         function drawChart() {
             var data = google.visualization.arrayToDataTable(datos);
-    
+
             var options = {
-                title: 'Grafica de Linear Regression',
-                hAxis: {title: 'X'},
-                vAxis: {title: 'Y'},
+                title: 'Grafica de Predicciones',
+                hAxis: { title: 'X' },
+                vAxis: { title: 'Y' },
                 legend: 'none',
-                trendlines: { 0: {} }    // Draw a trendline for data series 0.
+                trendlines: { 0: {} }
             };
-    
+
             var chart = new google.visualization.ScatterChart(document.getElementById(componente));
             chart.draw(data, options);
         }
@@ -338,7 +338,7 @@ function trainPolynomialRegression() {
 
     // Preparar datos para Google Charts
     var a = joinArrays('x', xTrain, 'Training', yTrain, 'Prediction Degree 2', yPredict, 'Prediction Degree 3', yPredict2, 'Prediction Degree 4', yPredict3);
-  
+
     console.log(a);
 
     google.charts.load('current', { packages: ['corechart'] });
@@ -347,9 +347,9 @@ function trainPolynomialRegression() {
     function drawChart() {
         var data = google.visualization.arrayToDataTable(a);
         var options = {
-            title: 'Gráfica de Polynomial Regression',
-            hAxis: {title: 'X'},
-            vAxis: {title: 'Y'},
+            title: 'Gráfica de Tendencias',
+            hAxis: { title: 'X' },
+            vAxis: { title: 'Y' },
             seriesType: 'scatter',
             series: {
                 1: { type: 'line' },
@@ -364,35 +364,61 @@ function trainPolynomialRegression() {
 
 // Función de entrenamiento para Decision Tree
 function trainDecisionTree() {
-    const param1 = document.getElementById('lr-param1').value;
-    console.log(`Entrenando Decision Tree con parámetro: ${param1}`);
-    // Lógica para entrenamiento aquí
-}
+    if (!df) {
+        alert('Por favor, carga un archivo CSV primero.');
+        return;
+    }
 
-// Función de entrenamiento para Naive Bayes
-function trainNaiveBayes() {
-    const param1 = document.getElementById('lr-param1').value;
-    console.log(`Entrenando Naive Bayes con parámetro: ${param1}`);
-    // Lógica para entrenamiento aquí
-}
+    // Convertir el dataframe a array
+    const headers = df.columns;
+    const dataWithoutHeaders = df.values;
+    const dataArr = [headers, ...dataWithoutHeaders];
 
-// Función de entrenamiento para Neural Network
-function trainNeuralNetwork() {
-    const param1 = document.getElementById('lr-param1').value;
-    console.log(`Entrenando Neural Network con parámetro: ${param1}`);
-    // Lógica para entrenamiento aquí
-}
+    function parseCSV(csvText) {
+        // Divide el texto en líneas y luego en celdas por cada coma
+        const rows = csvText.trim().split('\n');
+        return rows.map(row => row.split(','));
+    }
 
-// Función de entrenamiento para K-Means
-function trainKMeans() {
-    const param1 = document.getElementById('lr-param1').value;
-    console.log(`Entrenando K-Means con parámetro: ${param1}`);
-    // Lógica para entrenamiento aquí
-}
+    // Obtener el texto del CSV desde el textarea
+    const csvText = document.getElementById('csvInput').value;
+    const predictionData = parseCSV(csvText);
 
-// Función de entrenamiento para K-Nearest Neighbors
-function trainKNN() {
-    const param1 = document.getElementById('lr-param1').value;
-    console.log(`Entrenando K-Nearest Neighbors con parámetro: ${param1}`);
-    // Lógica para entrenamiento aquí
+    console.log(predictionData);
+
+    // Crear el árbol de decisión ID3
+    let decisionTree = new DecisionTreeID3(dataArr);
+    let root = decisionTree.train(decisionTree.dataset);
+    // Puedes hacer que solicite el texto del csv para predecir
+    let predict = decisionTree.predict(predictionData, root)
+    
+    const dotStr = decisionTree.generateDotString(root);
+    displayTree(dotStr);
+
+    // Mostrar el resultado de la predicción
+    console.log("Predicción:", predict);
+
+    // Convertir y mostrar el árbol
+    displayTree(dotStr);
+
+    // Función para mostrar el árbol usando vis-network
+    function displayTree(dotStr) {
+        const parsedData = vis.network.convertDot(dotStr);
+        const container = document.getElementById("tree");
+        document.getElementById('prediction').innerText = "Valor Patron: " + predict.value + " \n Tag: " + predict.tag;
+
+        const options = {
+            layout: {
+                hierarchical: {
+                    levelSeparation: 100,
+                    nodeSpacing: 100,
+                    parentCentralization: true,
+                    direction: 'UD',
+                    sortMethod: 'directed',
+                }
+            }
+        };
+
+        new vis.Network(container, parsedData, options);
+    }
 }
