@@ -33,6 +33,7 @@ function loadCSV() {
 
                 // Llenar los selectores de columnas
                 fillColumnSelectors(df.columns);
+                fillColumnSelectorsPoly(df.columns);
             },
             error: function (error) {
                 console.error('Error al parsear el CSV:', error);
@@ -63,6 +64,36 @@ function fillColumnSelectors(columns) {
         optionY.value = column;
         optionY.textContent = column;
         yColumnSelect.appendChild(optionY);
+    });
+}
+
+// Función para obtener los valores de las columnas seleccionadas
+function fillColumnSelectorsPoly(columns) {
+    const xColumnSelect = document.getElementById('xColumnSelectPoly');
+    const yColumnSelect = document.getElementById('yColumnSelectPoly');
+    const predictColumnSelect = document.getElementById('predictColumnSelectPoly');
+
+    // Limpiar opciones previas
+    xColumnSelect.innerHTML = '';
+    yColumnSelect.innerHTML = '';
+    predictColumnSelect.innerHTML = '';
+
+    // Agregar opciones de columnas
+    columns.forEach(column => {
+        const optionX = document.createElement('option');
+        optionX.value = column;
+        optionX.textContent = column;
+        xColumnSelect.appendChild(optionX);
+
+        const optionY = document.createElement('option');
+        optionY.value = column;
+        optionY.textContent = column;
+        yColumnSelect.appendChild(optionY);
+
+        const optionPredict = document.createElement('option');
+        optionPredict.value = column;
+        optionPredict.textContent = column;
+        predictColumnSelect.appendChild(optionPredict);
     });
 }
 
@@ -205,13 +236,130 @@ function trainLinearRegression() {
     // Prepara datos para la gráfica, incluyendo cabeceras
     datos.unshift(['X', 'Y']);
     graficar(datos, 'Grafia Linear Regression');
+
+    function graficar(datos, componente) {
+        google.charts.load('current', {'packages':['corechart']});
+        google.charts.setOnLoadCallback(drawChart);
+    
+        function drawChart() {
+            var data = google.visualization.arrayToDataTable(datos);
+    
+            var options = {
+                title: 'Grafica de Linear Regression',
+                hAxis: {title: 'X'},
+                vAxis: {title: 'Y'},
+                legend: 'none',
+                trendlines: { 0: {} }    // Draw a trendline for data series 0.
+            };
+    
+            var chart = new google.visualization.ScatterChart(document.getElementById(componente));
+            chart.draw(data, options);
+        }
+    }
 }
 
-// Función de entrenamiento para Polynomial Regression
+// Función para entrenar y predecir con Polynomial Regression
 function trainPolynomialRegression() {
-    const param1 = document.getElementById('lr-param1').value;
-    console.log(`Entrenando Polynomial Regression con parámetro: ${param1}`);
-    // Lógica para entrenamiento aquí
+    if (!df) {
+        alert('Por favor, carga un archivo CSV primero.');
+        return;
+    }
+
+    // Obtener columnas seleccionadas
+    const xColName = document.getElementById("xColumnSelectPoly").value;
+    const yColName = document.getElementById("yColumnSelectPoly").value;
+    const predictColName = document.getElementById("predictColumnSelectPoly").value;
+
+    // Verificar que se hayan seleccionado columnas
+    if (!xColName || !yColName || !predictColName) {
+        alert("Por favor, selecciona las columnas X e Y.");
+        return;
+    }
+
+    // Extraer los valores de las columnas seleccionadas
+    const xValues = df[xColName].values.map(Number);
+    const yValues = df[yColName].values.map(Number);
+    const predictValues = df[predictColName].values.map(Number);
+
+    // Prepara datos para entrenamiento y predicción
+    const xTrain = xValues;
+    const yTrain = yValues;
+    const predictArray = predictValues;
+
+    // Crear la instancia de PolynomialRegression
+    var polynomial = new PolynomialRegression();
+
+    // Ajustar el modelo y predecir para diferentes grados
+    let yPredict = [];
+    let yPredict2 = [];
+    let yPredict3 = [];
+    let r2, r22, r23;
+
+    polynomial.fit(xTrain, yTrain, 2);
+    yPredict = polynomial.predict(predictArray);
+    r2 = polynomial.getError();
+
+    polynomial.fit(xTrain, yTrain, 3);
+    yPredict2 = polynomial.predict(predictArray);
+    r22 = polynomial.getError();
+
+    polynomial.fit(xTrain, yTrain, 4);
+    yPredict3 = polynomial.predict(predictArray);
+    r23 = polynomial.getError();
+
+    // Redondear resultados
+    for (let i = 0; i < predictArray.length; i++) {
+        yPredict[i] = Number(yPredict[i].toFixed(2));
+        yPredict2[i] = Number(yPredict2[i].toFixed(2));
+        yPredict3[i] = Number(yPredict3[i].toFixed(2));
+    }
+
+    // Mostrar resultados
+    document.getElementById("log1").innerHTML += 'X Train: [' + xTrain + ']';
+    document.getElementById("log2").innerHTML += 'Y Train: [' + yTrain + ']';
+    document.getElementById("log3").innerHTML += 'X To Predict: [' + predictArray + ']';
+    document.getElementById("log4").innerHTML += 'Y Prediction Degree 2: [' + yPredict + ']';
+    document.getElementById("log5").innerHTML += 'Y Prediction Degree 3: [' + yPredict2 + ']';
+    document.getElementById("log6").innerHTML += 'Y Prediction Degree 4: [' + yPredict3 + ']';
+    document.getElementById("log7").innerHTML += 'R^2 for Degree 2: ' + Number(r2.toFixed(2));
+    document.getElementById("log8").innerHTML += 'R^2 for Degree 3: ' + Number(r22.toFixed(2));
+    document.getElementById("log9").innerHTML += 'R^2 for Degree 4: ' + Number(r23.toFixed(2));
+
+    function joinArrays() {
+        var a = []
+        if (arguments.length == 10) {
+            a.push([arguments[0], arguments[2], arguments[4], arguments[6], arguments[8]]);
+            for (var i = 0; i < arguments[1].length; i++) {
+                a.push([arguments[1][i], arguments[3][i], arguments[5][i], arguments[7][i], arguments[9][i]]);
+            }
+        }
+        return a;
+    }
+
+    // Preparar datos para Google Charts
+    var a = joinArrays('x', xTrain, 'Training', yTrain, 'Prediction Degree 2', yPredict, 'Prediction Degree 3', yPredict2, 'Prediction Degree 4', yPredict3);
+  
+    console.log(a);
+
+    google.charts.load('current', { packages: ['corechart'] });
+    google.charts.setOnLoadCallback(drawChart);
+
+    function drawChart() {
+        var data = google.visualization.arrayToDataTable(a);
+        var options = {
+            title: 'Gráfica de Polynomial Regression',
+            hAxis: {title: 'X'},
+            vAxis: {title: 'Y'},
+            seriesType: 'scatter',
+            series: {
+                1: { type: 'line' },
+                2: { type: 'line' },
+                3: { type: 'line' }
+            }
+        };
+        var chart = new google.visualization.ComboChart(document.getElementById('chart_div'));
+        chart.draw(data, options);
+    }
 }
 
 // Función de entrenamiento para Decision Tree
@@ -247,25 +395,4 @@ function trainKNN() {
     const param1 = document.getElementById('lr-param1').value;
     console.log(`Entrenando K-Nearest Neighbors con parámetro: ${param1}`);
     // Lógica para entrenamiento aquí
-}
-
-// Función para graficar los datos
-function graficar(datos, componente) {
-    google.charts.load('current', {'packages':['corechart']});
-    google.charts.setOnLoadCallback(drawChart);
-
-    function drawChart() {
-        var data = google.visualization.arrayToDataTable(datos);
-
-        var options = {
-            title: 'Tendencia',
-            hAxis: {title: 'X'},
-            vAxis: {title: 'Y'},
-            legend: 'none',
-            trendlines: { 0: {} }    // Draw a trendline for data series 0.
-        };
-
-        var chart = new google.visualization.ScatterChart(document.getElementById(componente));
-        chart.draw(data, options);
-    }
 }
